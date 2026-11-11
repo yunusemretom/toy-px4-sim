@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 *.bak.*
 .px4_path
+logs/

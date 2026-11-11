@@ -13,12 +13,13 @@ dosyası ve görev parkuru dünyası.
 
 1. [Hızlı başlangıç](#hızlı-başlangıç)
 2. [Çalıştırma seçenekleri](#çalıştırma-seçenekleri)
-3. [Görev parkuru](#görev-parkuru)
-4. [Uçağa bağlanmak](#uçağa-bağlanmak)
-5. [Performans ve GPU](#performans-ve-gpu)
-6. [Uçak modeli](#uçak-modeli)
-7. [Geliştirme](#geliştirme)
-8. [Sorun giderme](#sorun-giderme)
+3. [Çok araçlı simülasyon](#çok-araçlı-simülasyon)
+4. [Görev parkuru](#görev-parkuru)
+5. [Uçağa bağlanmak](#uçağa-bağlanmak)
+6. [Performans ve GPU](#performans-ve-gpu)
+7. [Uçak modeli](#uçak-modeli)
+8. [Geliştirme](#geliştirme)
+9. [Sorun giderme](#sorun-giderme)
 
 ---
 
@@ -71,6 +72,35 @@ PX4_HOME_LAT=39.80 PX4_HOME_LON=32.60 PX4_HOME_ALT=900 ./run.sh
 ```
 
 `run.sh` olmadan da çalışır: `cd ~/PX4-Autopilot && make px4_sitl gz_toy`
+
+---
+
+## Çok araçlı simülasyon
+
+Aynı dünyada birden fazla uçak (her biri ayrı PX4 süreci):
+
+```bash
+./multi.sh                         # 5 toy + 5 advanced_plane, Gazebo penceresiyle
+./multi.sh --headless              # pencere yok, çok araçta önerilir
+./multi.sh --toy 3 --plane 2       # sayıları değiştir (toplam en fazla 10)
+```
+
+Başka bir terminalde hepsini birlikte kaldırmak için:
+
+```bash
+python3 scripts/swarm_test.py 10   # kalkış irtifaları 20, 28, 36 ... m (havada çarpışmasınlar)
+```
+
+| Araç | PX4 örneği | Sistem id | pymavlink portu | Gazebo modeli |
+|---|---|---|---|---|
+| 1. araç | 0 | 1 | `udp:127.0.0.1:14540` | `toy_0` |
+| 2. araç | 1 | 2 | `udp:127.0.0.1:14541` | `toy_1` |
+| ... | i | i+1 | `udp:127.0.0.1:(14540+i)` | `toy_i` / `advanced_plane_i` |
+
+- Uçaklar pistin kuzeyinde (y = 6 … 60 m), 6 m arayla, doğuya bakarak dizilir.
+- QGroundControl hepsini UDP 14550'den görür.
+- Loglar `logs/px4_<i>.log`; Ctrl+C hepsini kapatır.
+- PX4'ün port düzeni en fazla 10 aracı ayrı portlarla destekler.
 
 ---
 
@@ -128,6 +158,7 @@ ağaçların performans için yok.
 | `maneuver_test.py` | Sert dönüşler ve irtifa değişiklikleri; PX4'ün kontrol yüzeylerine verdiği komutları yazdırır |
 | `surf_test.py [süre]` | Kontrol yüzeylerini sırayla ±25° oynatır (uçak disarm iken) |
 | `grab_cam.py <dosya.png>` | Burun kamerasından tek kare kaydeder |
+| `swarm_test.py [n] [süre]` | `multi.sh` ile açılan n aracı kademeli irtifalara birlikte kaldırır |
 
 > PX4, yer istasyonu (GCS) bağlantısı görmeden arm etmez. QGC açık değilse betiğiniz
 > `MAV_TYPE_GCS` heartbeat'i göndermelidir (örnek: `fw_test.py`).
@@ -159,6 +190,12 @@ export __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.js
 | Intel GPU, ilk dünya | 0.29 – 1.00 (kasıyor) | %105 |
 | NVIDIA, ilk dünya | 1.00 | %140 |
 | **NVIDIA, hafifletilmiş dünya ve kamera** | **1.00** | **%52** |
+| 10 araç (5 toy + 5 advanced_plane), pencereli | ort. 0.79 (en düşük 0.31) | %230 |
+| 10 araç, `--headless` | ort. 0.94 (anlık düşüşler var) | %198 |
+
+10 araçlı testte 10 uçağın 10'u da kalkıp hedef irtifasına oturdu. Simülasyon gerçek zamandan
+yavaş koşsa da PX4 Gazebo'nun saatine kilitli (lockstep) olduğu için uçuş doğru kalır; sadece
+yavaş ilerler.
 
 Hafifletmeler: ağaçlar tek mesh (renk başına bir çizim çağrısı) ve çarpışmasız; kamera
 1280×960 @ 30 Hz yerine 640×480 @ 20 Hz.
@@ -198,7 +235,8 @@ araçlarda kamera kullanmayın; her kamera sahneyi bir kez daha çizer.
 ### Repo yapısı
 
 ```
-run.sh                     simülasyonu başlatır (GPU seçimi dahil)
+run.sh                     tek araç simülasyonu (GPU seçimi dahil)
+multi.sh                   çok araçlı simülasyon
 install.sh, uninstall.sh   PX4'e bağlama / geri alma
 airframes/22000_gz_toy     PX4 airframe (parametreler, kontrol tahsisi)
 models/toy/                uçak: model.sdf, mesh'ler, avl/
@@ -248,6 +286,7 @@ PX4 dokümanı `docs/en/sim_gazebo_gz/tools_avl_automation.md`).
 |---|---|
 | Gazebo kasıyor | `./run.sh` kullanın (NVIDIA'yı seçer); `nvidia-smi` çıktısında `gz sim` görünmeli. Gerekirse `--headless`. |
 | `No rule to make target 'px4_sitl'` | Komut PX4 klasöründe çalıştırılmalı; ya da `./run.sh` kullanın. |
+| Çok araçta bazı uçaklar kalkmıyor | Kalkış yolunda engel olabilir (uçaklar +x yönünde koşar); `logs/px4_<i>.log` dosyasına bakın. |
 | `PX4 server already running` | Önceki simülasyon kapanmamış: `pkill -x px4; pkill -f "gz sim"` |
 | Fare ile yakınlaşamıyorum | Takip modunda yakınlaşma çalışmaz: `./run.sh --no-follow` |
 | Arm reddediliyor (`No connection to the GCS`) | QGC'yi açın ya da betikten GCS heartbeat gönderin. |
