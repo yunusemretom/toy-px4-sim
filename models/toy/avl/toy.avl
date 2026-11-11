@@ -1,0 +1,120 @@
+Toy pusher plane (1-Montaj.STEP)
+#
+# AVL eksenleri: x geriye, y saga, z yukari. Birim: metre.
+# Orijin: govde burnu (CAD Z = 1001.3 mm), z = 0 agirlik merkezi yuksekligi (CAD Y = 170 mm).
+# CAD -> AVL:  x = (Zcad - 1001.3)/1000,  y = (Xcad + 152.9)/1000,  z = (Ycad - 170)/1000
+#
+# Kanat profili: Clark Y ~ NACA 3412 (kalinlik %12, kamber ~%3.4 @ %40).
+# Kanat hucum acisi CAD'den: kok +3.2 deg, uc +3.4 deg (govde eksenine gore).
+# Kontrol yuzeyleri (olculmedi, VARSAYIM):
+#   aileron: dis yari aciklik (y 0.35..0.70), kirisin %25'i
+#   elevator: tam aciklik, kirisin %30'u
+#   rudder: tam yukseklik, kirisin %30'u
+# 'ailsym' gercek bir yuzey degil: ailerona simetrik sapma verip tek aileronun CL/Cm etkisini
+# hesaplamak icin (avl_to_sdf.py kullanir). Siralama: d01 aileron, d02 ailsym, d03 elevator, d04 rudder.
+# Govde (BODY) modellenmedi: govdenin yon ve boylamsal kararsizlastirici etkisi dahil degil.
+#
+#Mach
+0.0
+#IYsym  IZsym  Zsym
+ 0      0      0.0
+#Sref    Cref    Bref
+0.308   0.222   1.40
+#Xref    Yref    Zref   (agirlik merkezi: kanat kok hucum kenarindan 80 mm geride)
+0.4093  0.0     0.0
+#CDp: parazit + profil surukleme tahmini (kanat ~0.010, govde ~0.014, kuyruk ~0.004, winglet/girisim ~0.004)
+0.032
+#
+#==============================================================
+SURFACE
+Kanat
+#Nchord  Cspace  Nspan  Sspace
+10       1.0     28     -2.0
+YDUPLICATE
+0.0
+ANGLE
+0.0
+#--------------------------------------------------------------
+SECTION
+#Xle     Yle     Zle      Chord    Ainc
+0.3293   0.000   0.0313   0.2507   3.2
+NACA
+3412
+#--------------------------------------------------------------
+SECTION
+0.3368   0.350   0.0311   0.2211   3.3
+NACA
+3412
+CONTROL
+#name     gain  Xhinge  XYZhvec   SgnDup
+aileron   1.0   0.75    0. 0. 0.  -1
+CONTROL
+ailsym    1.0   0.75    0. 0. 0.   1
+#--------------------------------------------------------------
+SECTION
+0.3443   0.700   0.0309   0.1915   3.4
+NACA
+3412
+CONTROL
+aileron   1.0   0.75    0. 0. 0.  -1
+CONTROL
+ailsym    1.0   0.75    0. 0. 0.   1
+#
+#==============================================================
+SURFACE
+Winglet
+6        1.0     6      1.0
+YDUPLICATE
+0.0
+#--------------------------------------------------------------
+SECTION
+0.3448   0.705  -0.0298   0.1959   0.0
+SECTION
+0.3448   0.705   0.0766   0.1959   0.0
+#
+#==============================================================
+SURFACE
+Yatay Kuyruk
+# Gercek kiris 120 mm (LE x=0.700, TE x=0.820); uca dogru yuvarlatilmis (y=0.20'de kiris ~80 mm).
+#Nchord  Cspace  Nspan  Sspace
+8        1.0     12     -2.0
+YDUPLICATE
+0.0
+ANGLE
+0.0
+#--------------------------------------------------------------
+SECTION
+0.7000   0.000   0.0083   0.1200   0.0
+CONTROL
+elevator  1.0   0.70    0. 0. 0.   1
+SECTION
+0.7000   0.150   0.0083   0.1170   0.0
+CONTROL
+elevator  1.0   0.70    0. 0. 0.   1
+SECTION
+0.7399   0.204   0.0083   0.0801   0.0
+CONTROL
+elevator  1.0   0.70    0. 0. 0.   1
+#
+#==============================================================
+SURFACE
+Dikey Kuyruk
+# Gercek kiris 120 mm; govde altinda (ventral) ve ust ucta daralir.
+8        1.0     14     1.0
+#--------------------------------------------------------------
+SECTION
+0.7197   0.000  -0.0867   0.1003   0.0
+CONTROL
+rudder    1.0   0.70    0. 0. 0.   1
+SECTION
+0.7000   0.000  -0.0500   0.1200   0.0
+CONTROL
+rudder    1.0   0.70    0. 0. 0.   1
+SECTION
+0.7000   0.000   0.1200   0.1190   0.0
+CONTROL
+rudder    1.0   0.70    0. 0. 0.   1
+SECTION
+0.7266   0.000   0.2093   0.0934   0.0
+CONTROL
+rudder    1.0   0.70    0. 0. 0.   1

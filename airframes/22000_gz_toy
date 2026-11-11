@@ -1,0 +1,97 @@
+#!/bin/sh
+#
+# @name Toy Pusher Plane SITL
+#
+# @type Standard Plane
+# @class Plane
+#
+# 1.4 m span, Clark Y, pusher motor behind the tail, ailerons + elevator + rudder.
+# Gazebo model: models/toy in the toy-px4-sim repo (linked by install.sh)
+#
+
+. ${R}etc/init.d/rc.fw_defaults
+
+PX4_SIMULATOR=${PX4_SIMULATOR:=gz}
+PX4_GZ_WORLD=${PX4_GZ_WORLD:=default}
+PX4_SIM_MODEL=${PX4_SIM_MODEL:=toy}
+
+# Gazebo GUI follow camera: closer than the default (-2, -2, 2) for this 1.4 m span plane.
+# Zooming with the mouse does not work while following; start with PX4_GZ_NO_FOLLOW=1
+# for a free camera.
+PX4_GZ_FOLLOW_OFFSET_X=${PX4_GZ_FOLLOW_OFFSET_X:=-1.6}
+PX4_GZ_FOLLOW_OFFSET_Y=${PX4_GZ_FOLLOW_OFFSET_Y:=-1.2}
+PX4_GZ_FOLLOW_OFFSET_Z=${PX4_GZ_FOLLOW_OFFSET_Z:=0.7}
+
+param set-default SIM_GZ_EN 1
+
+# Airspeeds (m/s): estimated stall ~11 m/s at 2.75 kg, S = 0.308 m^2, CLmax ~1.1
+param set-default FW_AIRSPD_STALL 11
+param set-default FW_AIRSPD_MIN 13
+param set-default FW_AIRSPD_TRIM 16
+param set-default FW_AIRSPD_MAX 24
+
+# Throttle: ~28% measured in SITL at trim airspeed (AVL aero model)
+param set-default FW_THR_MIN 0.05
+param set-default FW_THR_TRIM 0.28
+param set-default FW_THR_MAX 0.9
+
+# Attitude rate gains (starting point from advanced_plane, tune with autotune)
+param set-default FW_PR_FF 0.08
+param set-default FW_PR_I 0.3
+param set-default FW_PR_P 0.08
+param set-default FW_RR_FF 0.05
+param set-default FW_RR_I 0.2
+param set-default FW_RR_P 0.03
+param set-default FW_YR_FF 0.3
+param set-default FW_YR_I 0.4
+param set-default FW_YR_P 0.2
+
+param set-default FW_P_LIM_MAX 30
+param set-default FW_P_LIM_MIN -15
+param set-default FW_LND_ANG 8
+
+param set-default FW_T_CLMB_MAX 5
+param set-default FW_T_SINK_MAX 3
+param set-default FW_T_SINK_MIN 2
+
+param set-default FW_W_EN 1
+param set-default NAV_DLL_ACT 2
+
+# Simulation takes off from the ground on the fuselage (runway takeoff).
+# The real aircraft is hand-launched: use FW_LAUN_DETCN_ON 1 and RWTO_TKOFF 0 there.
+param set-default RWTO_TKOFF 1
+
+# Control allocation: 1 pusher motor behind the CG, thrust along +x
+param set-default CA_ROTOR_COUNT 1
+param set-default CA_ROTOR0_PX -0.469
+
+# Control surfaces: left aileron, right aileron, elevator, rudder
+param set-default CA_SV_CS_COUNT 4
+param set-default CA_SV_CS0_TYPE 1
+param set-default CA_SV_CS0_TRQ_R -0.5
+param set-default CA_SV_CS1_TYPE 2
+param set-default CA_SV_CS1_TRQ_R 0.5
+param set-default CA_SV_CS2_TYPE 3
+param set-default CA_SV_CS2_TRQ_P 1
+param set-default CA_SV_CS3_TYPE 4
+param set-default CA_SV_CS3_TRQ_Y 1
+
+# Gazebo outputs: motor in rad/s, servos
+param set-default SIM_GZ_EC_FUNC1 101
+param set-default SIM_GZ_EC_MIN1 0
+param set-default SIM_GZ_EC_MAX1 1000
+
+param set-default SIM_GZ_SV_FUNC1 201
+param set-default SIM_GZ_SV_FUNC2 202
+param set-default SIM_GZ_SV_FUNC3 203
+param set-default SIM_GZ_SV_FUNC4 204
+
+# Servo angle range must match the joint limits in model.sdf (+/-0.44 rad = +/-25 deg)
+param set-default SIM_GZ_SV_MAXA1 25
+param set-default SIM_GZ_SV_MINA1 -25
+param set-default SIM_GZ_SV_MAXA2 25
+param set-default SIM_GZ_SV_MINA2 -25
+param set-default SIM_GZ_SV_MAXA3 25
+param set-default SIM_GZ_SV_MINA3 -25
+param set-default SIM_GZ_SV_MAXA4 25
+param set-default SIM_GZ_SV_MINA4 -25
