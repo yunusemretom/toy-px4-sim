@@ -1,6 +1,6 @@
 # toy-px4-sim
 
-Yarışmalarda yaygın sabit kanat uçaklar için PX4 + Gazebo simülasyonu: **TOY** (ekibin uçağı),
+Yarışmalarda yaygın sabit kanat uçaklar için **PX4** ve **ArduPilot** + Gazebo simülasyonu: **TOY** (ekibin uçağı),
 **X-UAV Talon**, **Mini Talon**, **Skywalker X8** ve **Skywalker 1900** modelleri, PX4 airframe
 dosyaları ve görev parkuru dünyası.
 
@@ -19,8 +19,9 @@ dosyaları ve görev parkuru dünyası.
 5. [Uçağa bağlanmak](#uçağa-bağlanmak)
 6. [Performans ve GPU](#performans-ve-gpu)
 7. [Uçak modelleri](#uçak-modelleri)
-8. [Geliştirme](#geliştirme)
-9. [Sorun giderme](#sorun-giderme)
+8. [ArduPilot ile kullanmak](#ardupilot-ile-kullanmak)
+9. [Geliştirme](#geliştirme)
+10. [Sorun giderme](#sorun-giderme)
 
 ---
 
@@ -276,6 +277,87 @@ hızlar stall 12 / min 15 / trim 18 / max 26 m/s, trim gazı 0.31, yatış sın�
 
 ---
 
+## ArduPilot ile kullanmak
+
+Aynı beş model ve parkur ArduPilot (ArduPlane SITL) ile de çalışır. PX4 kurulumu gerekmez.
+
+### Kurulum (bir kez)
+
+```bash
+sudo apt install rapidjson-dev libgz-sim8-dev libopencv-dev libgstreamer1.0-dev \
+     libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+     gstreamer1.0-libav gstreamer1.0-gl
+pip install --user empy==3.3.4 pexpect future pymavlink
+./ardupilot/setup.sh ~/        # ArduPilot ve ardupilot_gazebo'yu indirir ve derler
+```
+
+`setup.sh` şunları yapar: [ArduPilot](https://github.com/ArduPilot/ardupilot)'u (sığ klon, alt
+modüllerle, ~1.5 GB) indirip `ArduPlane` SITL'i derler; [ardupilot_gazebo](https://github.com/ArduPilot/ardupilot_gazebo)
+eklentisini Gazebo Harmonic için derler; klasör yollarını `ardupilot/.ap_paths` dosyasına yazar.
+
+### Çalıştırma
+
+```bash
+./ardupilot/run.sh talon                         # tek uçak, Gazebo penceresiyle
+./ardupilot/run.sh x8 --headless                 # pencere olmadan
+./ardupilot/run.sh --vehicles "talon:2,x8:2"     # çok uçak (toplam en fazla 10)
+```
+
+Başka bir terminalde:
+
+```bash
+python3 scripts/ap_test.py maneuver        # 1. uçak: TAKEOFF, sert dönüşler, irtifa değişimi (GUIDED)
+python3 scripts/ap_test.py swarm 10        # n uçak: kademeli irtifalara birlikte kalkış
+```
+
+| Bağlantı | Adres |
+|---|---|
+| pymavlink / MAVProxy | `tcp:127.0.0.1:5760` (uçak i: `5760 + 10*i`) |
+| QGroundControl | UDP 14550 (otomatik; uçak i'nin sistem id'si i+1) |
+| Gazebo ↔ ArduPilot (JSON) | UDP `9002 + 10*i` |
+
+MAVProxy kullanmak isterseniz: `mavproxy.py --master tcp:127.0.0.1:5760 --console --map`
+
+### Test sonuçları
+
+| Model | Kalkış (TAKEOFF) | Manevralar (40 / 20 / 35 m) | En düşük irtifa | Hava hızı |
+|---|---|---|---|---|
+| TOY | 25 m | 40 / 20 / 35 m | 19 m | 18 m/s |
+| X-UAV Talon | 23 m | 40 / 20 / 35 m | 19 m | 15 m/s |
+| Mini Talon | 23 m | 40 / 20 / 35 m | 19 m | 15 m/s |
+| Skywalker X8 | 24 m | 40 / 20 / 35 m | 19 m | 18 m/s |
+| Skywalker 1900 | 22 m | 40 / 20 / 35 m | 19 m | 13 m/s |
+
+10 uçaklı karışık filo: her modelden 2, `--headless`: 10 uçağın 10'u hedef irtifalarında (20–92 m), gerçek zaman faktörü 1.00.
+
+### PX4 modelinden farkları
+
+ArduPilot modelleri (`models/<ad>_ap/`) `tools/gen_ardupilot.py` ile PX4 modellerinden üretilir.
+Aerodinamik, mesh'ler ve eklemler aynıdır; değişenler:
+
+| | PX4 modeli | ArduPilot modeli |
+|---|---|---|
+| Otopilot köprüsü | PX4 `gz_bridge` | `ArduPilotPlugin` (JSON, kilitli adım) |
+| Sensörler | IMU, barometre, manyetometre, GPS | yalnızca IMU (diğerlerini ArduPilot SITL üretir) |
+| IMU ekseni | gövdeyle aynı | x etrafında 180° (eklenti ileri-sağ-aşağı bekler) |
+| Motor | `MulticopterMotorModel` | Gazebo `Thruster` (gaz → itki, N) |
+| Kontrol yüzeyleri | PX4 servo konuları | `COMMAND` kanalları aynı eklem kontrolcülerine yazar |
+| Dünya | `toy_parkur` | `toy_parkur_ap` (4 ms adım, sistem eklentileri dünyada) |
+
+Kanal eşlemesi ve servo yönleri tahmin edilmedi, ölçüldü: `tools/ap_calibrate.py` ArduPlane'i
+kendi iç modeliyle çalıştırıp her servo fonksiyonunun stick yönlerine göre PWM yönünü ölçer
+(`tools/ardupilot_signs.json`); `gen_ardupilot.py` bunu modelin AVL türevleriyle birleştirip her
+yüzey için doğru fonksiyonu (aileron 4, elevatör 19, rudder 21, elevon 77/78, V-kuyruk 79/80) ve
+yönü seçer. Parametreler: `ardupilot/params/<ad>.parm` (hızlar ve limitler PX4 airframe'inden).
+
+Notlar:
+- TOY'un yunuslama hız kazançları ArduPlane varsayılanının dörtte biri (varsayılanla salınım yapıyordu).
+  Diğer modeller ArduPlane varsayılan kazançlarıyla uçuyor.
+- Modelleri yeniden üretmek için: `python3 tools/gen_ardupilot.py --all` (önce PX4 modelleri,
+  `tools/gen_plane.py`).
+
+---
+
 ## Geliştirme
 
 ### Repo yapısı
@@ -292,6 +374,10 @@ worlds/toy_parkur.sdf      parkur dünyası (üretilir)
 tools/gen_world.py         parkuru üreten betik
 tools/gen_plane.py         uçak modeli üreticisi (mesh + AVL + SDF + airframe)
 tools/plane_specs.py       model ölçüleri
+tools/gen_ardupilot.py     ArduPilot model ve parametre üreticisi
+tools/ap_calibrate.py      ArduPlane servo yönü ölçümü
+ardupilot/                 setup.sh, run.sh, params/ (ArduPilot)
+models/<ad>_ap/            ArduPilot modelleri
 scripts/                   pymavlink test betikleri
 cad/1-Montaj.STEP          kaynak CAD montajı
 ```
@@ -342,4 +428,6 @@ En kolayı: `tools/plane_specs.py`'ye bir tanım ekleyip `python3 tools/gen_plan
 | `PX4 server already running` | Önceki simülasyon kapanmamış: `pkill -x px4; pkill -f "gz sim"` |
 | Fare ile yakınlaşamıyorum | Takip modunda yakınlaşma çalışmaz: `./run.sh --no-follow` |
 | Arm reddediliyor (`No connection to the GCS`) | QGC'yi açın ya da betikten GCS heartbeat gönderin. |
+| ArduPilot: `PANIC: Failed to load defaults` | Parametre dosyası yolu yanlış; `./ardupilot/run.sh` kullanın. |
+| ArduPilot: Gazebo donuk, ArduPilot bağlanmıyor | Kilitli adım: ArduPilot kapanınca Gazebo bekler. Önceki süreçleri kapatın: `pkill -x arduplane; pkill -f "gz sim"` |
 | Kontrol yüzeyleri oynamıyor gibi | Düz uçuşta sapmalar 1–2°'dir. `scripts/maneuver_test.py` ile manevrada görün. |

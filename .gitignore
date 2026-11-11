@@ -3,3 +3,4 @@ __pycache__/
 *.bak.*
 .px4_path
 logs/
+ardupilot/.ap_paths

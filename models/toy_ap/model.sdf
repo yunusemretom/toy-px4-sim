@@ -1,0 +1,604 @@
+<?xml version="1.0"?>
+<!-- ArduPilot surumu (tools/gen_ardupilot.py). 
+  "toy" itici (pusher) sabit kanat.
+
+  Govde ekseni: x ileri, y sol, z yukari. Orijin = agirlik merkezi (CG).
+  CAD (1-Montaj.STEP, mm) -> govde donusumu:
+    x = -(Zcad - 1410.6), y = -(Xcad + 152.9), z = (Ycad - 170.0)
+  CG: kanat kok hucum kenarindan 80 mm geride (kullanici verisi), dikeyde tahmini.
+
+  Geometri (CAD'den):
+    kanat acikligi 1.40 m, kok kirisi 0.251 m, uc kirisi 0.191 m
+    alan S = 0.308 m^2, MAC = 0.222 m, AR = 6.36
+    yatay kuyruk 0.408 x 0.150 m, dikey kuyruk 0.176 x 0.150 m (govde ustu)
+
+  TAHMIN olan degerler (olcum/AVL ile guncellenmeli):
+    kutle 2.75 kg (kullanici: 2.5-3 kg), atalet tensoru
+    motor/pervane: 4S, 12" pervane, ~995 rad/s'de ~29 N statik itki
+    aerodinamik katsayilar: Clark Y + basit kuyruk hacmi hesabi
+-->
+<sdf version='1.9'>
+  <model name='toy'>
+    <pose>0 0 0.09 0 0 0</pose>
+    <link name='base_link'>
+      <pose>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>2.75</mass>
+        <inertia>
+          <!-- Tahmin: kanat ~0.8 kg acikliga yayili, motor+kuyruk ~0.4 kg CG'nin 0.45 m gerisinde -->
+          <ixx>0.15</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.14</iyy>
+          <iyz>0</iyz>
+          <izz>0.27</izz>
+        </inertia>
+      </inertial>
+      <collision name='base_link_collision'>
+        <!-- Govde kutusu (0.85 x 0.12 x 0.12 m); govde inisi icin dusuk surtunme -->
+        <pose>-0.0157 0 -0.0267 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.85 0.12 0.12</size>
+          </box>
+        </geometry>
+        <surface>
+          <contact>
+            <ode>
+              <max_vel>10</max_vel>
+              <min_depth>0.01</min_depth>
+            </ode>
+          </contact>
+          <friction>
+            <ode>
+              <mu>0.1</mu>
+              <mu2>0.1</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+      <!-- Gorseller: STEP montajindaki her parca ayri mesh, ayri renk -->
+      <visual name='govde_visual'>
+        <geometry>
+          <mesh>
+            <scale>0.001 0.001 0.001</scale>
+            <uri>model://toy/meshes/govde.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.05 0.15 0.45 1.0</ambient>
+          <diffuse>0.10 0.25 0.70 1.0</diffuse>
+          <specular>0.3 0.3 0.3 1.0</specular>
+        </material>
+      </visual>
+      <visual name='kanat_visual'>
+        <geometry>
+          <mesh>
+            <scale>0.001 0.001 0.001</scale>
+            <uri>model://toy/meshes/kanat.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.60 0.30 0.02 1.0</ambient>
+          <diffuse>1.00 0.50 0.05 1.0</diffuse>
+          <specular>0.3 0.3 0.3 1.0</specular>
+        </material>
+      </visual>
+      <visual name='yatay_kuyruk_visual'>
+        <geometry>
+          <mesh>
+            <scale>0.001 0.001 0.001</scale>
+            <uri>model://toy/meshes/yatay_kuyruk.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.50 0.05 0.05 1.0</ambient>
+          <diffuse>0.85 0.10 0.10 1.0</diffuse>
+          <specular>0.3 0.3 0.3 1.0</specular>
+        </material>
+      </visual>
+      <visual name='dikey_kuyruk_visual'>
+        <geometry>
+          <mesh>
+            <scale>0.001 0.001 0.001</scale>
+            <uri>model://toy/meshes/dikey_kuyruk.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.50 0.05 0.05 1.0</ambient>
+          <diffuse>0.85 0.10 0.10 1.0</diffuse>
+          <specular>0.3 0.3 0.3 1.0</specular>
+        </material>
+      </visual>
+      <visual name='winglets_visual'>
+        <geometry>
+          <mesh>
+            <scale>0.001 0.001 0.001</scale>
+            <uri>model://toy/meshes/winglets.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.05 0.05 0.05 1.0</ambient>
+          <diffuse>0.10 0.10 0.10 1.0</diffuse>
+          <specular>0.3 0.3 0.3 1.0</specular>
+        </material>
+      </visual>
+      <gravity>1</gravity>
+      <velocity_decay />
+      <self_collide>0</self_collide>
+      <sensor name="imu_sensor" type="imu">
+        <pose degrees="true">0 0 0 180 0 0</pose>
+        <gz_frame_id>base_link</gz_frame_id>
+        <always_on>1</always_on>
+        <update_rate>250</update_rate>
+        <imu>
+          <angular_velocity>
+            <x>
+              <noise type="gaussian">
+                <mean>0</mean>
+                <stddev>0.0003394</stddev>
+                <dynamic_bias_stddev>3.8785e-05</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000</dynamic_bias_correlation_time>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0</mean>
+                <stddev>0.0003394</stddev>
+                <dynamic_bias_stddev>3.8785e-05</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000</dynamic_bias_correlation_time>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0</mean>
+                <stddev>0.0003394</stddev>
+                <dynamic_bias_stddev>3.8785e-05</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>1000</dynamic_bias_correlation_time>
+              </noise>
+            </z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x>
+              <noise type="gaussian">
+                <mean>0</mean>
+                <stddev>0.004</stddev>
+                <dynamic_bias_stddev>0.006</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>300</dynamic_bias_correlation_time>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0</mean>
+                <stddev>0.004</stddev>
+                <dynamic_bias_stddev>0.006</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>300</dynamic_bias_correlation_time>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0</mean>
+                <stddev>0.004</stddev>
+                <dynamic_bias_stddev>0.006</dynamic_bias_stddev>
+                <dynamic_bias_correlation_time>300</dynamic_bias_correlation_time>
+              </noise>
+            </z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
+    </link>
+
+    <!-- Itici pervane: kuyruk ucunun arkasinda (Zcad ~1880 mm). Itki +x (ileri) yonunde.
+         Carpismasi yok: gercekte pervane ucu govde altindan asagi sarkiyor (bkz. notlar). -->
+    <link name='rotor_pusher'>
+      <pose>-0.469 0 0.007 0 1.5708 0</pose>
+      <inertial>
+        <mass>0.02</mass>
+        <inertia>
+          <ixx>1.5e-04</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>1.5e-04</iyy>
+          <iyz>0</iyz>
+          <izz>3.0e-04</izz>
+        </inertia>
+      </inertial>
+      <visual name='rotor_pusher_visual'>
+        <geometry>
+          <cylinder>
+            <length>0.004</length>
+            <radius>0.1524</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 0.6</ambient>
+          <diffuse>0.1 0.1 0.1 0.6</diffuse>
+        </material>
+        <transparency>0.4</transparency>
+      </visual>
+      <gravity>1</gravity>
+      <velocity_decay />
+      <self_collide>0</self_collide>
+    </link>
+    <joint name='rotor_pusher_joint' type='revolute'>
+      <child>rotor_pusher</child>
+      <parent>base_link</parent>
+      <axis>
+        <!-- SDF 1.9: eksen varsayilan olarak child link cercevesinde; govde x'i icin model cercevesi -->
+        <xyz expressed_in="__model__">1 0 0</xyz>
+        <limit>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <!-- Kontrol yuzeyleri (sari). Link orijini = mentese hatti uzerinde bir nokta; mesh govde
+         cercevesinde oldugu icin visual pose link konumunun tersi. Eklem konumu AdvancedLiftDrag'e
+         girdi olarak okunur; kutle yok. servo_0 sol aileron, servo_1 sag aileron, servo_2 elevator,
+         servo_3 rudder. Menteseler (CAD'den): aileron kirisin %75'i (|y| 0.35..0.70 m, sivrilen hat),
+         elevator/rudder kirisin %70'i (kuyruk kirisi 120 mm). -->
+    <link name="left_aileron">
+      <pose>-0.08595 0.525 0.027 0 0 0</pose>
+      <inertial>
+        <mass>0.00000001</mass>
+        <inertia>
+          <ixx>0.000001</ixx><ixy>0</ixy><ixz>0</ixz>
+          <iyy>0.000001</iyy><iyz>0</iyz><izz>0.000001</izz>
+        </inertia>
+      </inertial>
+      <visual name="left_aileron_visual">
+        <pose>0.08595 -0.525 -0.027 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>0.001 0.001 0.001</scale>
+            <uri>model://toy/meshes/aileron_sol.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.60 0.55 0.00 1.0</ambient>
+          <diffuse>1.00 0.90 0.00 1.0</diffuse>
+          <specular>0.3 0.3 0.3 1.0</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="right_aileron">
+      <pose>-0.08595 -0.525 0.027 0 0 0</pose>
+      <inertial>
+        <mass>0.00000001</mass>
+        <inertia>
+          <ixx>0.000001</ixx><ixy>0</ixy><ixz>0</ixz>
+          <iyy>0.000001</iyy><iyz>0</iyz><izz>0.000001</izz>
+        </inertia>
+      </inertial>
+      <visual name="right_aileron_visual">
+        <pose>0.08595 0.525 -0.027 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>0.001 0.001 0.001</scale>
+            <uri>model://toy/meshes/aileron_sag.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.60 0.55 0.00 1.0</ambient>
+          <diffuse>1.00 0.90 0.00 1.0</diffuse>
+          <specular>0.3 0.3 0.3 1.0</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="elevator">
+      <pose>-0.3747 0 0.0083 0 0 0</pose>
+      <inertial>
+        <mass>0.00000001</mass>
+        <inertia>
+          <ixx>0.000001</ixx><ixy>0</ixy><ixz>0</ixz>
+          <iyy>0.000001</iyy><iyz>0</iyz><izz>0.000001</izz>
+        </inertia>
+      </inertial>
+      <visual name="elevator_visual">
+        <pose>0.3747 0 -0.0083 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>0.001 0.001 0.001</scale>
+            <uri>model://toy/meshes/elevator.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.60 0.55 0.00 1.0</ambient>
+          <diffuse>1.00 0.90 0.00 1.0</diffuse>
+          <specular>0.3 0.3 0.3 1.0</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="rudder">
+      <pose>-0.3747 0 0 0 0 0</pose>
+      <inertial>
+        <mass>0.00000001</mass>
+        <inertia>
+          <ixx>0.000001</ixx><ixy>0</ixy><ixz>0</ixz>
+          <iyy>0.000001</iyy><iyz>0</iyz><izz>0.000001</izz>
+        </inertia>
+      </inertial>
+      <visual name="rudder_visual">
+        <pose>0.3747 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>0.001 0.001 0.001</scale>
+            <uri>model://toy/meshes/rudder.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.60 0.55 0.00 1.0</ambient>
+          <diffuse>1.00 0.90 0.00 1.0</diffuse>
+          <specular>0.3 0.3 0.3 1.0</specular>
+        </material>
+      </visual>
+    </link>
+
+    <joint name='servo_0' type='revolute'>
+      <parent>base_link</parent>
+      <child>left_aileron</child>
+      <axis>
+        <xyz expressed_in="__model__">0.042 0.9991 0</xyz>
+        <limit><lower>-0.44</lower><upper>0.44</upper></limit>
+        <dynamics><damping>1.0</damping></dynamics>
+      </axis>
+      <physics><ode><implicit_spring_damper>1</implicit_spring_damper></ode></physics>
+    </joint>
+    <joint name='servo_1' type='revolute'>
+      <parent>base_link</parent>
+      <child>right_aileron</child>
+      <axis>
+        <xyz expressed_in="__model__">-0.042 0.9991 0</xyz>
+        <limit><lower>-0.44</lower><upper>0.44</upper></limit>
+        <dynamics><damping>1.0</damping></dynamics>
+      </axis>
+      <physics><ode><implicit_spring_damper>1</implicit_spring_damper></ode></physics>
+    </joint>
+    <joint name='servo_2' type='revolute'>
+      <parent>base_link</parent>
+      <child>elevator</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit><lower>-0.44</lower><upper>0.44</upper></limit>
+        <dynamics><damping>1.0</damping></dynamics>
+      </axis>
+      <physics><ode><implicit_spring_damper>1</implicit_spring_damper></ode></physics>
+    </joint>
+    <joint name='servo_3' type='revolute'>
+      <parent>base_link</parent>
+      <child>rudder</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-0.44</lower><upper>0.44</upper></limit>
+        <dynamics><damping>1.0</damping></dynamics>
+      </axis>
+      <physics><ode><implicit_spring_damper>1</implicit_spring_damper></ode></physics>
+    </joint>
+
+    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+      <joint_name>servo_0</joint_name>
+      <sub_topic>servo_0</sub_topic>
+      <p_gain>10</p_gain><i_gain>0</i_gain><d_gain>0</d_gain>
+    </plugin>
+    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+      <joint_name>servo_1</joint_name>
+      <sub_topic>servo_1</sub_topic>
+      <p_gain>10</p_gain><i_gain>0</i_gain><d_gain>0</d_gain>
+    </plugin>
+    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+      <joint_name>servo_2</joint_name>
+      <sub_topic>servo_2</sub_topic>
+      <p_gain>10</p_gain><i_gain>0</i_gain><d_gain>0</d_gain>
+    </plugin>
+    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+      <joint_name>servo_3</joint_name>
+      <sub_topic>servo_3</sub_topic>
+      <p_gain>10</p_gain><i_gain>0</i_gain><d_gain>0</d_gain>
+    </plugin>
+
+    <!-- Aerodinamik: tum ucak icin katsayilar, referans nokta CG (cp = 0).
+         Katsayilar AVL 3.36 ile uretildi: avl/toy.avl -> avl/run_avl.sh -> avl/avl_to_sdf.py
+         (alpha = 0 govde ekseni, kanat +3.2 deg hucum acisiyla takili; govde modellenmedi).
+         AVL: notr nokta burundan 0.4117 m, CG 0.4093 m -> statik marj ~%1.1 MAC (govdeyle daha az!).
+         alpha_stall govde eksenine gore: Clark Y ~15 deg - kanat hucum acisi 3.2 deg ~ 12 deg (AVL stall hesaplamaz).
+         Kontrol yuzeyi katsayilari derece basina. -->
+    <plugin filename="gz-sim-advanced-lift-drag-system" name="gz::sim::systems::AdvancedLiftDrag">
+      <a0>0.0</a0>
+      <CL0>0.46442</CL0>
+      <AR>6.36364</AR>
+      <eff>0.9453</eff>
+      <CLa>4.72801</CLa>
+      <CD0>0.0322871</CD0>
+      <Cem0>0.00604</Cem0>
+      <Cema>-0.051852</Cema>
+      <CYb>-0.465468</CYb>
+      <Cellb>-0.044645</Cellb>
+      <Cenb>0.069636</Cenb>
+      <CDp>0</CDp>
+      <CYp>0.075145</CYp>
+      <CLp>1.5e-05</CLp>
+      <Cellp>-0.452112</Cellp>
+      <Cemp>1e-06</Cemp>
+      <Cenp>-0.026906</Cenp>
+      <CDq>0.207541</CDq>
+      <CYq>0</CYq>
+      <CLq>5.53681</CLq>
+      <Cellq>-5e-06</Cellq>
+      <Cemq>-2.63254</Cemq>
+      <Cenq>1e-06</Cenq>
+      <CDr>-0</CDr>
+      <CYr>0.190021</CYr>
+      <CLr>-3e-06</CLr>
+      <Cellr>0.125849</Cellr>
+      <Cemr>-0</Cemr>
+      <Cenr>-0.045542</Cenr>
+      <alpha_stall>0.21</alpha_stall>
+      <CLa_stall>-3.85</CLa_stall>
+      <CDa_stall>-0.92</CDa_stall>
+      <Cema_stall>0</Cema_stall>
+      <cp>0 0 0</cp>
+      <area>0.308</area>
+      <mac>0.222</mac>
+      <air_density>1.2041</air_density>
+      <forward>1 0 0</forward>
+      <upward>0 0 1</upward>
+      <link_name>base_link</link_name>
+      <num_ctrl_surfaces>4</num_ctrl_surfaces>
+      <control_surface>
+        <name>servo_0</name>
+        <index>0</index>
+        <direction>1</direction>
+        <CD_ctrl>-0.0005515</CD_ctrl>
+        <CY_ctrl>0.0001105</CY_ctrl>
+        <CL_ctrl>-0.009706</CL_ctrl>
+        <Cell_ctrl>-0.0027155</Cell_ctrl>
+        <Cem_ctrl>0.001681</Cem_ctrl>
+        <Cen_ctrl>0.00015</Cen_ctrl>
+      </control_surface>
+      <control_surface>
+        <name>servo_1</name>
+        <index>1</index>
+        <direction>1</direction>
+        <CD_ctrl>-0.0005515</CD_ctrl>
+        <CY_ctrl>-0.0001105</CY_ctrl>
+        <CL_ctrl>-0.009706</CL_ctrl>
+        <Cell_ctrl>0.0027155</Cell_ctrl>
+        <Cem_ctrl>0.001681</Cem_ctrl>
+        <Cen_ctrl>-0.00015</Cen_ctrl>
+      </control_surface>
+      <control_surface>
+        <name>servo_2</name>
+        <index>2</index>
+        <direction>-1</direction>
+        <CD_ctrl>0.000114</CD_ctrl>
+        <CY_ctrl>0</CY_ctrl>
+        <CL_ctrl>0.007261</CL_ctrl>
+        <Cell_ctrl>-0</Cell_ctrl>
+        <Cem_ctrl>-0.009171</Cem_ctrl>
+        <Cen_ctrl>0</Cen_ctrl>
+      </control_surface>
+      <control_surface>
+        <name>servo_3</name>
+        <index>3</index>
+        <direction>1</direction>
+        <CD_ctrl>0</CD_ctrl>
+        <CY_ctrl>-0.003748</CY_ctrl>
+        <CL_ctrl>-0</CL_ctrl>
+        <Cell_ctrl>-0.000122</Cell_ctrl>
+        <Cem_ctrl>0</Cem_ctrl>
+        <Cen_ctrl>0.00095</Cen_ctrl>
+      </control_surface>
+    </plugin>
+
+    <!-- Motor: thrust = motorConstant * w^2. 12" pervane, 4S: ~995 rad/s (~9500 rpm) -> ~29 N.
+         Gercek sinir PX4 tarafinda SIM_GZ_EC_MAX1 ile. momentConstant = tork/itki ~0.022 m. -->
+
+    <!-- Burun kamerasi: 640x480, 20 Hz, FOV 90 deg, 15 deg asagi bakar. PX4'un mono_cam modeli
+         (1280x960 @ 30 Hz) yerine hafif kendi tanimimiz: her kamera sahneyi bir kez daha cizer,
+         cok aracli simulasyonda bu belirleyici. PX4'un GstCameraSystem eklentisi goruntuyu
+         UDP 5600'e (RTP/H.264) yayinlar; gz konusu:
+         /world/<dunya>/model/toy_0/link/camera_link/sensor/camera/image -->
+    <link name="camera_link">
+      <pose>0.42 0 -0.027 0 0.26 0</pose>
+      <inertial>
+        <mass>0.03</mass>
+        <inertia>
+          <ixx>0.00001</ixx><ixy>0</ixy><ixz>0</ixz>
+          <iyy>0.00001</iyy><iyz>0</iyz><izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <visual name="camera_visual">
+        <geometry><box><size>0.02 0.04 0.04</size></box></geometry>
+        <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material>
+      </visual>
+      <sensor name="camera" type="camera">
+        <gz_frame_id>camera_link</gz_frame_id>
+        <camera>
+          <horizontal_fov>1.5708</horizontal_fov>
+          <image><width>640</width><height>480</height></image>
+          <clip><near>0.1</near><far>1500</far></clip>
+        </camera>
+        <always_on>1</always_on>
+        <update_rate>20</update_rate>
+        <visualize>false</visualize>
+      </sensor>
+    </link>
+    <joint name="CameraJoint" type="fixed">
+      <parent>base_link</parent>
+      <child>camera_link</child>
+    </joint>
+
+    <!-- Motor: ArduPilot gaz kanali itkiyi (N, 0..29) dogrudan komut eder. -->
+    <plugin filename="gz-sim-thruster-system" name="gz::sim::systems::Thruster">
+      <namespace>toy_ap</namespace>
+      <joint_name>rotor_pusher_joint</joint_name>
+      <thrust_coefficient>0.1</thrust_coefficient>
+      <fluid_density>1.2041</fluid_density>
+      <propeller_diameter>0.305</propeller_diameter>
+      <max_thrust_cmd>29.30</max_thrust_cmd>
+      <min_thrust_cmd>0</min_thrust_cmd>
+    </plugin>
+    <!-- ArduPilot JSON koprusu. Govde ekseni x ileri / y sola / z yukari -> FRD icin x etrafinda
+         180 deg; dunya ENU -> NED. fdm_port_in cok aracli calistirmada ornek basina degistirilir. -->
+    <plugin name="ArduPilotPlugin" filename="ArduPilotPlugin">
+      <fdm_addr>127.0.0.1</fdm_addr>
+      <fdm_port_in>9002</fdm_port_in>
+      <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
+      <lock_step>1</lock_step>
+      <modelXYZToAirplaneXForwardZDown degrees="true">0 0 0 180 0 0</modelXYZToAirplaneXForwardZDown>
+      <gazeboXYZToNED degrees="true">0 0 0 180 0 90</gazeboXYZToNED>
+      <imuName>imu_sensor</imuName>
+      <control channel="0">
+        <jointName>servo_0</jointName>
+        <type>COMMAND</type>
+        <cmd_topic>/model/toy_ap/servo_0</cmd_topic>
+        <multiplier>-0.8727</multiplier>
+        <offset>-0.5</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+      </control>
+      <control channel="1">
+        <jointName>servo_1</jointName>
+        <type>COMMAND</type>
+        <cmd_topic>/model/toy_ap/servo_1</cmd_topic>
+        <multiplier>0.8727</multiplier>
+        <offset>-0.5</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+      </control>
+      <control channel="2">
+        <jointName>servo_2</jointName>
+        <type>COMMAND</type>
+        <cmd_topic>/model/toy_ap/servo_2</cmd_topic>
+        <multiplier>0.8727</multiplier>
+        <offset>-0.5</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+      </control>
+      <control channel="3">
+        <jointName>servo_3</jointName>
+        <type>COMMAND</type>
+        <cmd_topic>/model/toy_ap/servo_3</cmd_topic>
+        <multiplier>0.8727</multiplier>
+        <offset>-0.5</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+      </control>
+      <control channel="4">
+        <jointName>rotor_pusher_joint</jointName>
+        <type>COMMAND</type>
+        <cmd_topic>/model/toy_ap/joint/rotor_pusher_joint/cmd_thrust</cmd_topic>
+        <multiplier>29.30</multiplier>
+        <offset>0</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+      </control>
+    </plugin>
+  </model>
+</sdf>

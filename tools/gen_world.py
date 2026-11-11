@@ -15,6 +15,7 @@ PX4_HOME_LAT / PX4_HOME_LON / PX4_HOME_ALT ile degistirilebilir.
 """
 import math
 import random
+import re
 from pathlib import Path
 
 import numpy as np
@@ -433,7 +434,31 @@ def build_world():
     return placed, tris
 
 
+def build_ardupilot_world():
+    """Ayni parkurun ArduPilot surumu: 4 ms fizik adimi (ArduPlane dongusu 50 Hz; 1 ms ile 10 aracli
+    kilitli adim gercek zamanin %13'unde kaliyordu), ArduPilot ile kilitli adim ve sistem
+    eklentileri dunya dosyasinda. real_time_factor 1: -1 (ardupilot_gazebo ornekleri) ile
+    ArduPilot --speedup 1 iken bile simulasyon gercek zamandan kat kat hizli kosuyordu
+    (PX4 bunlari kendi sunucu yapilandirmasindan aliyor, ArduPilot calistiricisi almiyor)."""
+    src = WORLD.read_text()
+    ap = src.replace('<world name="toy_parkur">', '<world name="toy_parkur_ap">', 1)
+    ap = re.sub(r"<physics type=\"ode\">.*?</physics>",
+                """<physics name="4ms" type="ignore">
+      <max_step_size>0.004</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors"><render_engine>ogre2</render_engine></plugin>""",
+                ap, count=1, flags=re.S)
+    (WORLD.parent / "toy_parkur_ap.sdf").write_text(ap)
+
+
 if __name__ == "__main__":
     build_ground_model()
     n, tris = build_world()
+    build_ardupilot_world()
     print(f"yazildi: {GROUND.relative_to(REPO)}/, {WORLD.relative_to(REPO)} ({n} agac, tek mesh, {tris} ucgen)")
