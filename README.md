@@ -33,6 +33,7 @@ görev parkuru hem **PX4** hem **ArduPilot** ile çalışır.
 7. [Performans](#performans)
 8. [Geliştirme](#geliştirme)
 9. [Sorun giderme](#sorun-giderme)
+10. [Lisans](#lisans)
 
 ---
 
@@ -395,3 +396,13 @@ Ayrıca airframe adlarını PX4'ün `airframes/CMakeLists.txt` listesine ekler; 
 | ArduPilot: Gazebo donuk, uçak bağlanmıyor | `ardupilot/run.sh` önceki çalıştırmadan kalanları kendisi kapatır; yine de olursa: `pkill -x arduplane; pkill -f "gz sim"` |
 | Çok uçakta bazı uçaklar kalkmıyor | Kalkış yolunda engel olabilir (uçaklar doğuya koşar); `logs/` altındaki loglara bakın. |
 | Kontrol yüzeyleri oynamıyor gibi | Düz uçuşta sapmalar 1–2°'dir; manevra testinde belirginleşir. |
+
+---
+
+## Lisans
+
+[MIT](LICENSE) © 2026 Yunus Emre Tom
+
+PX4 ([BSD-3-Clause](https://github.com/PX4/PX4-Autopilot/blob/main/LICENSE)), ArduPilot ve
+ardupilot_gazebo ([GPL-3.0](https://github.com/ArduPilot/ardupilot/blob/master/COPYING.txt)) bu
+repoya dahil değildir; kendi depolarından, kendi lisanslarıyla kurulur.

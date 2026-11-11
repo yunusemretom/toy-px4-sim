@@ -34,6 +34,7 @@ aircraft and the same mission course work with both **PX4** and **ArduPilot**.
 7. [Performance](#performance)
 8. [Development](#development)
 9. [Troubleshooting](#troubleshooting)
+10. [License](#license)
 
 ---
 
@@ -401,3 +402,14 @@ modified in the PX4 repo. To undo: `./uninstall.sh ~/PX4-Autopilot`
 | ArduPilot: Gazebo frozen, aircraft doesn't connect | `ardupilot/run.sh` cleans up leftovers from earlier runs itself; if it still happens: `pkill -x arduplane; pkill -f "gz sim"` |
 | Some aircraft don't take off in a fleet | Something may be in the takeoff path (aircraft run east); check the logs in `logs/`. |
 | Control surfaces seem not to move | In level flight deflections are 1–2°; they become obvious in the maneuver test. |
+
+---
+
+## License
+
+[MIT](LICENSE) © 2026 Yunus Emre Tom
+
+PX4 ([BSD-3-Clause](https://github.com/PX4/PX4-Autopilot/blob/main/LICENSE)), ArduPilot and
+ardupilot_gazebo ([GPL-3.0](https://github.com/ArduPilot/ardupilot/blob/master/COPYING.txt)) are
+not included in this repository; they are installed from their own repositories under their own
+licenses.
