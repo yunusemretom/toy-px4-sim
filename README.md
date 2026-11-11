@@ -6,7 +6,6 @@ PX4'ün kendisi bu repoda yok: PX4-Autopilot'u herkes kendi bilgisayarına norma
 bu repo da modeli ve airframe dosyasını o PX4 kopyasına **symlink** ile bağlar.
 Bu repoda `git pull` yapınca PX4 tarafındaki model de güncellenir.
 
-![Kontrol yüzeyi testi](docs/kontrol_yuzeyi_testi.png)
 
 ## Gereksinimler
 
