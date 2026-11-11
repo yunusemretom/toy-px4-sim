@@ -57,7 +57,11 @@ PX4 SITL portları: QGC `14550`, offboard / API `14540`, ROS 2 uXRCE-DDS ajanı 
 # Kalkış, 25 m'de loiter, irtifa/hız takibi, RTL
 python3 scripts/fw_test.py udp:127.0.0.1:14540 90
 
-# Kontrol yüzeylerini sırayla ±25° oynat (uçak DISARM iken)
+# Sert dönüşler + irtifa değişiklikleri; PX4'ün her manevrada kontrol
+# yüzeylerine verdiği komutları (min/max derece) yazdırır. Uçak havadaysa kalkışı atlar.
+python3 scripts/maneuver_test.py
+
+# Kontrol yüzeylerini sırayla ±25° oynat (aktüatör testi, uçak DISARM iken)
 python3 scripts/surf_test.py 3
 
 # Burun kamerasından tek kare kaydet
@@ -87,7 +91,19 @@ Burunda 15° aşağı bakan kamera (PX4'ün `mono_cam` modeli, 1280×960, 30 Hz)
 | Kontrol yüzeyleri | aileron (dış yarı, %25 kiriş), elevatör ve rudder (%30 kiriş), ±25° | VARSAYIM |
 | Aerodinamik katsayılar | AVL 3.36 | `models/toy/avl/` |
 
-SITL'de: 16 m/s trim hızında ~%28 gaz, kararlı loiter.
+SITL'de: 18 m/s trim hızında ~%31 gaz. `maneuver_test.py` ile 40° yatışlı sert dönüşler ve
+±15 m irtifa değişiklikleri irtifa kaybı olmadan uçuluyor.
+
+### Uçuş ayarları (airframe)
+
+- Hızlar: stall 12, min 15, trim 18, max 26 m/s. Kanat yükü ~8.9 kg/m² olduğu için
+  (`advanced_plane`'in 3 katı) daha düşük hızlarda uçak sert dönüşte stall olup yere düşüyordu.
+- Yatış sınırı `FW_R_LIM` 40°.
+- Açısal hız kazançları `advanced_plane`'den alınıp bu modelin birim komut başına daha düşük
+  kontrol gücüne göre ölçeklendi (yunuslama ~4x, yatış ~1.7x, yön ~1.3x).
+- Servo açı aralığı `SIM_GZ_SV_MAXA/MINA` = ±25°, SDF'deki eklem sınırlarıyla aynı.
+
+Gerçek uçak için bunlar başlangıç değerleridir; uçuş testleriyle (autotune) ayarlanmalıdır.
 
 ### ⚠️ Ağırlık merkezi uyarısı
 

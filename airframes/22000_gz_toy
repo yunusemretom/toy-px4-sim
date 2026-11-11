@@ -24,28 +24,32 @@ PX4_GZ_FOLLOW_OFFSET_Z=${PX4_GZ_FOLLOW_OFFSET_Z:=0.7}
 
 param set-default SIM_GZ_EN 1
 
-# Airspeeds (m/s): estimated stall ~11 m/s at 2.75 kg, S = 0.308 m^2, CLmax ~1.1
-param set-default FW_AIRSPD_STALL 11
-param set-default FW_AIRSPD_MIN 13
-param set-default FW_AIRSPD_TRIM 16
-param set-default FW_AIRSPD_MAX 24
+# Airspeeds (m/s). Wing loading is ~8.9 kg/m^2 (2.75 kg, S = 0.308 m^2): model stall is
+# ~10 m/s level and ~12 m/s at 45 deg bank, so trim/min speeds need margin above that.
+param set-default FW_AIRSPD_STALL 12
+param set-default FW_AIRSPD_MIN 15
+param set-default FW_AIRSPD_TRIM 18
+param set-default FW_AIRSPD_MAX 26
 
-# Throttle: ~28% measured in SITL at trim airspeed (AVL aero model)
+# Throttle: ~31% measured in SITL in level loiter at 18 m/s (AVL aero model)
 param set-default FW_THR_MIN 0.05
-param set-default FW_THR_TRIM 0.28
+param set-default FW_THR_TRIM 0.31
 param set-default FW_THR_MAX 0.9
 
-# Attitude rate gains (starting point from advanced_plane, tune with autotune)
-param set-default FW_PR_FF 0.08
-param set-default FW_PR_I 0.3
-param set-default FW_PR_P 0.08
-param set-default FW_RR_FF 0.05
-param set-default FW_RR_I 0.2
-param set-default FW_RR_P 0.03
-param set-default FW_YR_FF 0.3
+# Attitude rate gains. Started from advanced_plane and scaled for this model's lower
+# control power per unit output (servo range 25 deg instead of 45, AVL control derivatives):
+# pitch ~0.25x, roll ~0.6x, yaw ~0.4x of advanced_plane -> gains scaled up accordingly.
+param set-default FW_PR_FF 0.40
+param set-default FW_PR_I 0.5
+param set-default FW_PR_P 0.35
+param set-default FW_RR_FF 0.09
+param set-default FW_RR_I 0.25
+param set-default FW_RR_P 0.05
+param set-default FW_YR_FF 0.4
 param set-default FW_YR_I 0.4
-param set-default FW_YR_P 0.2
+param set-default FW_YR_P 0.25
 
+param set-default FW_R_LIM 40
 param set-default FW_P_LIM_MAX 30
 param set-default FW_P_LIM_MIN -15
 param set-default FW_LND_ANG 8
