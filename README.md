@@ -23,7 +23,7 @@ Bu repoda `git pull` yapınca PX4 tarafındaki model de güncellenir.
 ## Kurulum
 
 ```bash
-git clone <bu-repo> toy-px4-sim
+git clone https://github.com/yunusemretom/toy-px4-sim.git
 cd toy-px4-sim
 ./install.sh ~/PX4-Autopilot
 ```
