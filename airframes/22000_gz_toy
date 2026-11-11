@@ -12,7 +12,8 @@
 . ${R}etc/init.d/rc.fw_defaults
 
 PX4_SIMULATOR=${PX4_SIMULATOR:=gz}
-PX4_GZ_WORLD=${PX4_GZ_WORLD:=default}
+# Default world: TOY mission course (worlds/toy_parkur.sdf). Override with PX4_GZ_WORLD=default.
+PX4_GZ_WORLD=${PX4_GZ_WORLD:=toy_parkur}
 PX4_SIM_MODEL=${PX4_SIM_MODEL:=toy}
 
 # Gazebo GUI follow camera: closer than the default (-2, -2, 2) for this 1.4 m span plane.

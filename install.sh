@@ -5,6 +5,7 @@
 #
 # - models/<ad>/          -> PX4/Tools/simulation/gz/models/<ad>          (symlink)
 # - airframes/<id>_gz_<ad> -> PX4/ROMFS/px4fmu_common/init.d-posix/airframes/ (symlink)
+# - worlds/<ad>.sdf        -> PX4/Tools/simulation/gz/worlds/<ad>.sdf       (symlink)
 # - airframe adi PX4'un airframes/CMakeLists.txt listesine eklenir (bir kez).
 #
 # Symlink kullanildigi icin bu repoda 'git pull' yapmak PX4 tarafini da gunceller.
@@ -22,10 +23,11 @@ fi
 PX4="$(cd "$PX4" && pwd)"
 
 MODELS_DIR="$PX4/Tools/simulation/gz/models"
+WORLDS_DIR="$PX4/Tools/simulation/gz/worlds"
 AIRFRAMES_DIR="$PX4/ROMFS/px4fmu_common/init.d-posix/airframes"
 CMAKELISTS="$AIRFRAMES_DIR/CMakeLists.txt"
 
-for p in "$MODELS_DIR" "$AIRFRAMES_DIR" "$CMAKELISTS"; do
+for p in "$MODELS_DIR" "$WORLDS_DIR" "$AIRFRAMES_DIR" "$CMAKELISTS"; do
 	if [[ ! -e "$p" ]]; then
 		echo "HATA: $p bulunamadi. PX4-Autopilot klasoru dogru mu? (submodule'ler: git submodule update --init --recursive)" >&2
 		exit 1
@@ -58,6 +60,11 @@ for m in "$REPO"/models/*/; do
 	link "$m" "$MODELS_DIR/$(basename "$m")"
 done
 
+echo "Dunyalar:"
+for w in "$REPO"/worlds/*.sdf; do
+	link "$w" "$WORLDS_DIR/$(basename "$w")"
+done
+
 echo "Airframe'ler:"
 for a in "$REPO"/airframes/*; do
 	name="$(basename "$a")"
@@ -79,8 +86,10 @@ EOF
 	fi
 done
 
+echo "$PX4" > "$REPO/.px4_path"   # run.sh icin
+
 echo
-echo "Tamam. Calistirmak icin:"
+echo "Tamam. Calistirmak icin:  ./run.sh   (veya:)"
 echo "  cd $PX4"
 for a in "$REPO"/airframes/*_gz_*; do
 	echo "  make px4_sitl gz_$(basename "$a" | sed 's/^[0-9]*_gz_//')"

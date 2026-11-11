@@ -558,17 +558,39 @@
       <motorType>velocity</motorType>
     </plugin>
 
-    <!-- Burun kamerasi: mono_cam (1280x960, 30 Hz, FOV 100 deg), 15 deg asagi bakar.
-         PX4'un GstCameraSystem eklentisi goruntuyu UDP 5600'e (RTP/H.264) yayinlar;
-         gz konusu: /world/default/model/toy_0/link/camera_link/sensor/camera/image -->
-    <include merge='true'>
-      <uri>model://mono_cam</uri>
+    <!-- Burun kamerasi: 640x480, 20 Hz, FOV 90 deg, 15 deg asagi bakar. PX4'un mono_cam modeli
+         (1280x960 @ 30 Hz) yerine hafif kendi tanimimiz: her kamera sahneyi bir kez daha cizer,
+         cok aracli simulasyonda bu belirleyici. PX4'un GstCameraSystem eklentisi goruntuyu
+         UDP 5600'e (RTP/H.264) yayinlar; gz konusu:
+         /world/<dunya>/model/toy_0/link/camera_link/sensor/camera/image -->
+    <link name="camera_link">
       <pose>0.42 0 -0.027 0 0.26 0</pose>
-    </include>
+      <inertial>
+        <mass>0.03</mass>
+        <inertia>
+          <ixx>0.00001</ixx><ixy>0</ixy><ixz>0</ixz>
+          <iyy>0.00001</iyy><iyz>0</iyz><izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <visual name="camera_visual">
+        <geometry><box><size>0.02 0.04 0.04</size></box></geometry>
+        <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material>
+      </visual>
+      <sensor name="camera" type="camera">
+        <gz_frame_id>camera_link</gz_frame_id>
+        <camera>
+          <horizontal_fov>1.5708</horizontal_fov>
+          <image><width>640</width><height>480</height></image>
+          <clip><near>0.1</near><far>1500</far></clip>
+        </camera>
+        <always_on>1</always_on>
+        <update_rate>20</update_rate>
+        <visualize>false</visualize>
+      </sensor>
+    </link>
     <joint name="CameraJoint" type="fixed">
       <parent>base_link</parent>
       <child>camera_link</child>
-      <pose relative_to="base_link">0.42 0 -0.027 0 0.26 0</pose>
     </joint>
   </model>
 </sdf>
