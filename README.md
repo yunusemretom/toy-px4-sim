@@ -1,7 +1,8 @@
 # toy-px4-sim
 
-**TOY** itici (pusher) sabit kanat uçağı için PX4 + Gazebo simülasyonu: uçak modeli, PX4 airframe
-dosyası ve görev parkuru dünyası.
+Yarışmalarda yaygın sabit kanat uçaklar için PX4 + Gazebo simülasyonu: **TOY** (ekibin uçağı),
+**X-UAV Talon**, **Mini Talon**, **Skywalker X8** ve **Skywalker 1900** modelleri, PX4 airframe
+dosyaları ve görev parkuru dünyası.
 
 > PX4'ün kendisi bu repoda yok. Herkes PX4'ü kendi bilgisayarına normal şekilde kurar; bu repo
 > modeli, dünyayı ve airframe'i o PX4 kopyasına **symlink** ile bağlar. Bu repoda `git pull` yapmak
@@ -17,7 +18,7 @@ dosyası ve görev parkuru dünyası.
 4. [Görev parkuru](#görev-parkuru)
 5. [Uçağa bağlanmak](#uçağa-bağlanmak)
 6. [Performans ve GPU](#performans-ve-gpu)
-7. [Uçak modeli](#uçak-modeli)
+7. [Uçak modelleri](#uçak-modelleri)
 8. [Geliştirme](#geliştirme)
 9. [Sorun giderme](#sorun-giderme)
 
@@ -59,7 +60,8 @@ Gazebo açılır, uçak parkurdaki pistte durur. QGroundControl açıksa otomati
 
 | Komut | Ne yapar |
 |---|---|
-| `./run.sh` | Parkur dünyası, NVIDIA GPU varsa onunla |
+| `./run.sh` | TOY, parkur dünyası, NVIDIA GPU varsa onunla |
+| `./run.sh talon` | Başka bir model (`talon`, `mini_talon`, `x8`, `skywalker1900`, `toy`) |
 | `./run.sh --headless` | Gazebo penceresi olmadan (en hafif) |
 | `./run.sh --world default` | PX4'ün boş, gri dünyası |
 | `./run.sh --no-follow` | Kamera uçağı takip etmez; fare ile serbest dolaşma ve yakınlaşma |
@@ -82,7 +84,8 @@ Aynı dünyada birden fazla uçak (her biri ayrı PX4 süreci):
 ```bash
 ./multi.sh                         # 5 toy + 5 advanced_plane, Gazebo penceresiyle
 ./multi.sh --headless              # pencere yok, çok araçta önerilir
-./multi.sh --toy 3 --plane 2       # sayıları değiştir (toplam en fazla 10)
+./multi.sh --vehicles "talon:2,x8:2,mini_talon:2,skywalker1900:2,toy:2"   # karışık filo
+./multi.sh --toy 3 --plane 2       # kısa yol: 3 toy + 2 advanced_plane (toplam en fazla 10)
 ```
 
 Başka bir terminalde hepsini birlikte kaldırmak için:
@@ -95,7 +98,7 @@ python3 scripts/swarm_test.py 10   # kalkış irtifaları 20, 28, 36 ... m (hava
 |---|---|---|---|---|
 | 1. araç | 0 | 1 | `udp:127.0.0.1:14540` | `toy_0` |
 | 2. araç | 1 | 2 | `udp:127.0.0.1:14541` | `toy_1` |
-| ... | i | i+1 | `udp:127.0.0.1:(14540+i)` | `toy_i` / `advanced_plane_i` |
+| ... | i | i+1 | `udp:127.0.0.1:(14540+i)` | `<model>_i` |
 
 - Uçaklar pistin kuzeyinde (y = 6 … 60 m), 6 m arayla, doğuya bakarak dizilir.
 - QGroundControl hepsini UDP 14550'den görür.
@@ -192,6 +195,7 @@ export __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.js
 | **NVIDIA, hafifletilmiş dünya ve kamera** | **1.00** | **%52** |
 | 10 araç (5 toy + 5 advanced_plane), pencereli | ort. 0.79 (en düşük 0.31) | %230 |
 | 10 araç, `--headless` | ort. 0.94 (anlık düşüşler var) | %198 |
+| 10 araç karışık (her modelden 2), `--headless` | 1.00 | — |
 
 10 araçlı testte 10 uçağın 10'u da kalkıp hedef irtifasına oturdu. Simülasyon gerçek zamandan
 yavaş koşsa da PX4 Gazebo'nun saatine kilitli (lockstep) olduğu için uçuş doğru kalır; sadece
@@ -205,7 +209,53 @@ araçlarda kamera kullanmayın; her kamera sahneyi bir kez daha çizer.
 
 ---
 
-## Uçak modeli
+## Uçak modelleri
+
+| Model | `run.sh` adı | Airframe | Açıklık | Kütle | Yapı | Trim hızı |
+|---|---|---|---|---|---|---|
+| TOY (ekibin uçağı) | `toy` | 22000 | 1.40 m | 2.75 kg | klasik kuyruk, itici | 18 m/s |
+| X-UAV Talon | `talon` | 22001 | 1.72 m | 2.8 kg | V-kuyruk, itici | 15 m/s |
+| X-UAV Mini Talon | `mini_talon` | 22002 | 1.30 m | 1.6 kg | V-kuyruk, itici | 15 m/s |
+| Skywalker X8 | `x8` | 22003 | 2.12 m | 3.2 kg | uçan kanat, elevon, itici | 18 m/s |
+| Skywalker 1900 | `skywalker1900` | 22004 | 1.90 m | 2.0 kg | T-kuyruk, itici | 13 m/s |
+
+Her model manevra testinden geçti (`scripts/maneuver_test.py`: kalkış, 40° yatışlı sert dönüşler,
+±15 m irtifa değişiklikleri, irtifa kaybı yok) ve 10 araçlı karışık filoda birlikte uçtu.
+
+### Hazır modeller nasıl üretildi
+
+Talon, Mini Talon, X8 ve Skywalker 1900 **parametrik üreticiyle** (`tools/gen_plane.py`) üretilir.
+Ölçüler `tools/plane_specs.py` dosyasındadır:
+
+- **Yayınlanan değerler** (satıcı sayfaları): açıklık, uzunluk, kanat alanı, uçuş ağırlığı, kuyruk tipi.
+  X8'in ataleti ölçülmüş değerdir (Løw-Hansen vd., CEAS Aeronautical Journal 2025).
+- **Tahmin edilenler** (fotoğraf oranlarından): kiriş dağılımı, kuyruk boyutları, gövde kesitleri,
+  motor konumu ve itkisi. Skywalker 1900'ün motor konumu kaynaklarda net değil (itici varsayıldı).
+
+Üretici tek tanımdan şunları çıkarır:
+
+1. Mesh'ler (kontrol yüzeyleri ayrı, hareketli parça) ve AVL geometrisi.
+2. AVL ile nötr nokta → ağırlık merkezi statik marja göre (klasik %10, uçan kanat %6 MAC).
+   X8 için hesaplanan ağırlık merkezi (burundan 443 mm) üreticinin verdiği 430–440 mm ile örtüşüyor.
+3. Seyir hızında kumandasız denge için kuyruk açısı (uçan kanatta uç bükümü) ayarı.
+4. AdvancedLiftDrag katsayıları; her kontrol yüzeyi ayrı hesaplanır.
+5. PX4 airframe: kontrol tahsisi AVL türevlerinden, hızlar modelin kendi stall hızından,
+   açısal hız kazançları TOY'a göre kontrol gücü oranından.
+
+Bir ölçüyü değiştirmek ya da yeni model eklemek için `tools/plane_specs.py`'yi düzenleyin, sonra:
+
+```bash
+python3 tools/gen_plane.py talon        # ya da --all
+./install.sh ~/PX4-Autopilot            # yeni model eklendiyse
+```
+
+Notlar:
+- **X8** gerçekte elden/katapultla atılır. Simülasyonda pistten kalkabilmesi için burnunun altında
+  küçük bir kızak var (yerde ~7° burun yukarı oturur).
+- **X8**'in dönüşlerde yatışı sınırı (35°) 50°'ye kadar aşıyor; yatış kazançları daha ayarlanabilir.
+- AVL yalnızca NACA 4 haneli profilleri destekler; X8'in reflex profili yerine NACA 0012 kullanıldı.
+
+### TOY
 
 | Özellik | Değer | Kaynak |
 |---|---|---|
@@ -217,14 +267,10 @@ araçlarda kamera kullanmayın; her kamera sahneyi bir kez daha çizer.
 | Kontrol yüzeyleri | aileron (dış yarı, %25 kiriş), elevatör/rudder (%30 kiriş), ±25° | varsayım |
 | Aerodinamik | AVL 3.36 ile hesaplandı | `models/toy/avl/` |
 
-**Uçuş ayarları** (`airframes/22000_gz_toy`):
+TOY elle kuruldu (CAD mesh'li); üretici kullanılmadı. Uçuş ayarları (`airframes/22000_gz_toy`):
+hızlar stall 12 / min 15 / trim 18 / max 26 m/s, trim gazı 0.31, yatış sınırı 40°.
 
-- Hızlar: stall 12 / min 15 / trim 18 / max 26 m/s; trim gazı 0.31; yatış sınırı 40°.
-- Kanat yükü ~8.9 kg/m² olduğu için daha düşük hızlarda uçak sert dönüşte stall oluyordu.
-- Açısal hız kazançları bu modelin kontrol gücüne göre ölçeklendi.
-- Gerçek uçak için bunlar başlangıç değerleridir; uçuş testleriyle ayarlanmalıdır.
-
-> ⚠️ **Ağırlık merkezi:** AVL'ye göre statik marj yalnızca **~%1 MAC** (gövde modellenmedi;
+> ⚠️ **TOY'un ağırlık merkezi:** AVL'ye göre statik marj yalnızca **~%1 MAC** (gövde modellenmedi;
 > gerçekte daha düşük olabilir). Simülasyonda PX4 bunu telafi ediyor. Gerçek uçakta ilk uçuştan
 > önce ağırlık merkezini öne alın (hücum kenarından ~6–6.5 cm).
 
@@ -238,11 +284,14 @@ araçlarda kamera kullanmayın; her kamera sahneyi bir kez daha çizer.
 run.sh                     tek araç simülasyonu (GPU seçimi dahil)
 multi.sh                   çok araçlı simülasyon
 install.sh, uninstall.sh   PX4'e bağlama / geri alma
-airframes/22000_gz_toy     PX4 airframe (parametreler, kontrol tahsisi)
-models/toy/                uçak: model.sdf, mesh'ler, avl/
+airframes/220xx_gz_<ad>    PX4 airframe'leri (parametreler, kontrol tahsisi)
+models/toy/                TOY: model.sdf, CAD mesh'leri, avl/
+models/<ad>/               üretilen modeller (talon, mini_talon, x8, skywalker1900)
 models/toy_ground/         parkur zemini, pist, ağaçlar (üretilir)
 worlds/toy_parkur.sdf      parkur dünyası (üretilir)
 tools/gen_world.py         parkuru üreten betik
+tools/gen_plane.py         uçak modeli üreticisi (mesh + AVL + SDF + airframe)
+tools/plane_specs.py       model ölçüleri
 scripts/                   pymavlink test betikleri
 cad/1-Montaj.STEP          kaynak CAD montajı
 ```
@@ -258,9 +307,9 @@ cad/1-Montaj.STEP          kaynak CAD montajı
 Ayrıca airframe adını PX4'ün `airframes/CMakeLists.txt` listesine ekler; PX4 reposunda bu dosya
 "değişmiş" görünür. Geri almak için: `./uninstall.sh ~/PX4-Autopilot`
 
-### Aerodinamik katsayıları yeniden hesaplamak (AVL)
+### TOY'un aerodinamik katsayılarını yeniden hesaplamak (AVL)
 
-Kontrol yüzeyi ölçüleri veya ağırlık merkezi değişince:
+Kontrol yüzeyi ölçüleri veya ağırlık merkezi değişince (diğer modeller için `tools/gen_plane.py`):
 
 ```bash
 nano models/toy/avl/toy.avl                   # geometriyi düzenle
@@ -272,6 +321,9 @@ AVL 3.36: <https://web.mit.edu/drela/Public/web/avl/> (gfortran ile derlenir; ay
 PX4 dokümanı `docs/en/sim_gazebo_gz/tools_avl_automation.md`).
 
 ### Yeni araç eklemek
+
+En kolayı: `tools/plane_specs.py`'ye bir tanım ekleyip `python3 tools/gen_plane.py <ad>` çalıştırmak
+(klasik kuyruk, T-kuyruk, V-kuyruk ve uçan kanat destekleniyor). Elle eklemek için:
 
 1. `models/<ad>/` altına `model.sdf` ve `model.config` koyun.
 2. `airframes/<id>_gz_<ad>` dosyası oluşturun (`PX4_SIM_MODEL=${PX4_SIM_MODEL:=<ad>}`).

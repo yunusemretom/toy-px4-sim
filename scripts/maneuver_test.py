@@ -8,6 +8,7 @@ acilarini (/model/toy_0/servo_N) okur ve her manevra icin min/max sapmayi yazdir
 Kullanim:  python3 maneuver_test.py [udp:127.0.0.1:14540]
 Gereken:   PX4 SITL (make px4_sitl gz_toy) calisiyor ve ucak yerde/disarm.
 """
+import atexit
 import math
 import os
 import subprocess
@@ -24,10 +25,22 @@ deflection = [0.0] * 4  # derece, PX4'un son komutu
 DEBUG = False  # True: her saniye irtifa/yatis/yunuslama yazdir
 
 
+READERS = []
+
+
+def stop_readers():
+    for proc in READERS:
+        proc.terminate()
+
+
+atexit.register(stop_readers)  # betik bitince gz topic surecleri acik kalmasin
+
+
 def servo_reader(i):
-    # gz topic -e akisi: her mesajda "data: <rad>" satiri
+    # gz topic -e akisi: her mesajda "data: <rad>" satiri (servo yoksa sessizce bekler)
     p = subprocess.Popen(["gz", "topic", "-e", "-t", f"/model/{MODEL}/servo_{i}"],
-                         stdout=subprocess.PIPE, text=True)
+                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    READERS.append(p)
     for line in p.stdout:
         if line.startswith("data:"):
             deflection[i] = math.degrees(float(line.split()[1]))

@@ -1,0 +1,64 @@
+ ---------------------------------------------------------------
+ Vortex Lattice Output -- Total Forces
+
+ Configuration: Skywalker X8 (tools/gen_plane.py ile uretildi)              
+     # Surfaces =   3
+     # Strips   =  64
+     # Vortices = 640
+
+  Sref = 0.80560       Cref = 0.40840       Bref =  2.1200    
+  Xref = 0.44290       Yref =  0.0000       Zref =  0.0000    
+
+ Standard axis orientation,  X fwd, Z down         
+
+ Run case:  -unnamed-                              
+
+  Alpha =   0.00000     pb/2V =  -0.00000     p'b/2V =  -0.00000
+  Beta  =   0.00000     qc/2V =   0.00000
+  Mach  =     0.000     rb/2V =  -0.00000     r'b/2V =  -0.00000
+
+  CXtot =  -0.02488     Cltot =   0.00000     Cl'tot =   0.00000
+  CYtot =  -0.00000     Cmtot =  -0.00123
+  CZtot =  -0.22035     Cntot =   0.00000     Cn'tot =   0.00000
+
+  CLtot =   0.22035
+  CDtot =   0.02488
+  CDvis =   0.02200     CDind = 0.0028775
+  CLff  =   0.22031     CDff  = 0.0029358    | Trefftz
+  CYff  =   0.00000         e =    0.9433    | Plane  
+
+   el_l            =   0.00000
+   el_r            =   0.00000
+
+ ---------------------------------------------------------------
+
+ Geometry-axis derivatives...
+
+                    axial   vel. u     sideslip vel. v      normal  vel. w
+                  ----------------    ----------------    ----------------
+ x force CX  |    CXu =  -0.049755    CXv =  -0.000008    CXw =   0.121153
+ y force CY  |    CYu =  -0.000002    CYv =  -0.162578    CYw =  -0.000077
+ z force CZ  |    CZu =  -0.440699    CZv =   0.000000    CZw =  -4.207098
+ x mom.  Cl  |    Clu =   0.000000    Clv =  -0.069353    Clw =   0.000002
+ y mom.  Cm  |    Cmu =  -0.002459    Cmv =   0.000000    Cmw =  -0.249440
+ z mom.  Cn  |    Cnu =   0.000002    Cnv =   0.017130    Cnw =   0.000066
+
+                      roll rate  p       pitch rate  q         yaw rate  r
+                  ----------------    ----------------    ----------------
+ x force CX  |    CXp =  -0.000119    CXq =  -0.100814    CXr =   0.000005
+ y force CY  |    CYp =   0.016561    CYq =  -0.000084    CYr =   0.052622
+ z force CZ  |    CZp =   0.000005    CZq =  -4.681936    CZr =  -0.000000
+ x mom.  Cl  |    Clp =  -0.395377    Clq =   0.000003    Clr =   0.052515
+ y mom.  Cm  |    Cmp =   0.000002    Cmq =  -1.258717    Cmr =  -0.000000
+ z mom.  Cn  |    Cnp =  -0.013741    Cnq =   0.000074    Cnr =  -0.007088
+
+                  el_l         d1     el_r         d2 
+                  ----------------    ----------------
+ x force CX  |   CXd1 =  -0.000377   CXd2 =  -0.000377
+ y force CY  |   CYd1 =   0.000272   CYd2 =  -0.000272
+ z force CZ  |   CZd1 =  -0.012932   CZd2 =  -0.012932
+ x mom.  Cl  |   Cld1 =   0.002921   Cld2 =  -0.002921
+ y mom.  Cm  |   Cmd1 =  -0.004918   Cmd2 =  -0.004918
+ z mom.  Cn  |   Cnd1 =  -0.000106   Cnd2 =   0.000107
+
+
