@@ -18,6 +18,7 @@ from pymavlink import mavutil
 class Plane:
     def __init__(self, i):
         self.i = i
+        ACTIVE.append(self)
         self.m = mavutil.mavlink_connection(f"tcp:127.0.0.1:{5760 + 10 * i}", source_system=255,
                                             source_component=190)
         self.m.wait_heartbeat(timeout=90)
@@ -152,9 +153,25 @@ def swarm(n, duration):
         p.mode("RTL")
 
 
+ACTIVE = []  # Ctrl+C'de RTL gonderilecek araclar
+
+
+def rtl_all():
+    for p in ACTIVE:
+        try:
+            p.mode("RTL")
+        except Exception:
+            pass
+
+
 if __name__ == "__main__":
     what = sys.argv[1] if len(sys.argv) > 1 else "maneuver"
-    if what == "maneuver":
-        maneuver(int(sys.argv[2]) if len(sys.argv) > 2 else 0)
-    else:
-        swarm(int(sys.argv[2]), float(sys.argv[3]) if len(sys.argv) > 3 else 90)
+    try:
+        if what == "maneuver":
+            maneuver(int(sys.argv[2]) if len(sys.argv) > 2 else 0)
+        else:
+            swarm(int(sys.argv[2]), float(sys.argv[3]) if len(sys.argv) > 3 else 90)
+    except KeyboardInterrupt:
+        # yarida kesilince ucaklari havada birakma: eve don
+        rtl_all()
+        print("\nDurduruldu; ucaklar RTL moduna alindi.")
